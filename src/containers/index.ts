@@ -20,7 +20,7 @@ export async function registerControllers(param: {
   server.on(
     "request",
     async (request: IncomingMessage, response: ServerResponse) => {
-      getContainer().controllers.forEach((controller) => {
+      getContainer().controllers.forEach(async (controller) => {
         for (const api of controller.apis) {
           // controller 안에 있는 API 목록들을 순회
           if (
@@ -30,46 +30,39 @@ export async function registerControllers(param: {
             normalizeUrl(request.url ?? "") === api.path
           ) {
             const parameters: any[] = [request, response];
+            if (api.query) {
+              parameters[api.query.index] = await parseRequestParam(
+                ParameterMetadatdaKeys.QUERY,
+                request,
+                api.query.name
+              );
+            }
+            if (api.body) {
+              parameters[api.body.index] = await parseRequestParam(
+                ParameterMetadatdaKeys.BODY,
+                request,
+                api.body.name
+              );
+            }
 
-            Promise.all(
-              // Querystring, Request Body Parsing
-              [ParameterMetadatdaKeys.QUERY, ParameterMetadatdaKeys.BODY]
-                .map((type) => ({
-                  type,
-                  ...Reflect.getOwnMetadata(
-                    type,
-                    controller.constructor.prototype,
-                    api.handler.name
-                  ),
-                }))
-                .filter((it) => it.parameterIndex !== undefined)
-                .map(
-                  async (param: {
-                    type: ParameterMetadatdaKeys;
-                    parameterIndex: number;
-                    name: string;
-                  }) => {
-                    const { type, parameterIndex, name } = param;
-                    // 해당하는 handler 의 파라미터에 QueryString, Request Body 를 심어준다.
-                    parameters[parameterIndex] = await parseRequestParam(
-                      type,
-                      request,
-                      name
-                    );
-                  }
-                )
-            )
-              .then((_) => {
-                response.setHeader("Content-Type", "application/json");
-                api.handler(...parameters).then((result: any) => {
-                  response.statusCode = HttpStatus.OK;
-                  response.write(
+            response.setHeader("Content-Type", "application/json");
+            api
+              .handler(...parameters)
+              .then((result: any) => {
+                console.log(
+                  `[${api.method.toUpperCase()}] ${
+                    api.path
+                  } (${parameters}) -> ${
                     typeof result === "object" ? JSON.stringify(result) : result
-                  );
-                  response.end();
-                });
+                  }`
+                );
+                response.statusCode = HttpStatus.OK;
+                response.write(
+                  typeof result === "object" ? JSON.stringify(result) : result
+                );
+                response.end();
               })
-              .catch((err) => {
+              .catch((err: any) => {
                 console.error(err);
                 response.statusCode = HttpStatus.BAD_REQUEST;
                 response.end();

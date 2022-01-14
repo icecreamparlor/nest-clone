@@ -7,6 +7,14 @@ export interface IApi {
   method: Method;
   path: string;
   handler: Function;
+  query?: {
+    index: number;
+    name: string;
+  };
+  body?: {
+    index: number;
+    name: string;
+  };
 }
 export interface IController {
   constructor: Function;

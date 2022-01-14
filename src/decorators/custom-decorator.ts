@@ -31,12 +31,34 @@ export function Controller(controllerPath: string): ClassDecorator {
           prototype,
           key
         );
+        const query = Reflect.getOwnMetadata(
+          ParameterMetadatdaKeys.QUERY,
+          prototype,
+          key
+        );
+        const body = Reflect.getOwnMetadata(
+          ParameterMetadatdaKeys.BODY,
+          prototype,
+          key
+        );
 
         if (path) {
           apis.push({
             method,
             path: `${controllerPath}${path}`,
             handler,
+            query: query
+              ? {
+                  index: query.parameterIndex,
+                  name: query.name,
+                }
+              : undefined,
+            body: body
+              ? {
+                  index: body.parameterIndex,
+                  name: body.name,
+                }
+              : undefined,
           });
         }
       });

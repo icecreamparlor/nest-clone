@@ -6,10 +6,10 @@ import {
   Query,
 } from "../decorators/custom-decorator";
 
-@Controller("/users")
-export class UsersController {
+@Controller("/orders")
+export class OrdersController {
   @Get("/get")
-  async getUser(@Query("name") query: any, @Body() body: any) {
+  async getOrder(@Query("name") query: any, @Body() body: any) {
     return {
       success: true,
       query,
@@ -17,7 +17,7 @@ export class UsersController {
     };
   }
   @Post("/save")
-  async saveUser(@Body("dana") body: any, @Query("queryString") query: any) {
+  async saveOrder(@Body("dana") body: any, @Query() query: any) {
     return {
       success: true,
       query,
