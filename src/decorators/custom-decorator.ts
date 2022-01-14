@@ -1,15 +1,15 @@
 import "reflect-metadata";
-import { getContainers } from "../containers";
+import { getContainer } from "../containers";
 import {
   ControllerMetadataKeys,
   Method,
   ParameterMetadatdaKeys,
 } from "../containers/const";
-import { Api } from "../containers/type";
+import { IApi } from "../containers/type";
 
 export function Controller(controllerPath: string): ClassDecorator {
   return function (constructor: Function) {
-    const apis: Api[] = [];
+    const apis: IApi[] = [];
 
     const prototype = constructor.prototype;
 
@@ -40,8 +40,8 @@ export function Controller(controllerPath: string): ClassDecorator {
           });
         }
       });
-    getContainers().controllers.push({
-      controller: constructor,
+    getContainer().controllers.push({
+      constructor,
       apis,
     });
   };
@@ -80,17 +80,21 @@ export function Patch(path: string): MethodDecorator {
 export function Put(path: string): MethodDecorator {
   return _generateRoute(Method.PUT)(path);
 }
-export function Query(): ParameterDecorator {
+export function _generateParamDecorator(
+  type: ParameterMetadatdaKeys,
+  name?: string
+) {
   return function (
     target: Object,
     propertyKey: string | symbol,
     parameterIndex: number
   ) {
-    Reflect.defineMetadata(
-      ParameterMetadatdaKeys.QUERY,
-      parameterIndex,
-      target,
-      propertyKey
-    );
+    Reflect.defineMetadata(type, { parameterIndex, name }, target, propertyKey);
   };
+}
+export function Query(name?: string): ParameterDecorator {
+  return _generateParamDecorator(ParameterMetadatdaKeys.QUERY, name);
+}
+export function Body(name?: string): ParameterDecorator {
+  return _generateParamDecorator(ParameterMetadatdaKeys.BODY, name);
 }

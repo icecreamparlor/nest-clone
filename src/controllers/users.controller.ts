@@ -1,29 +1,29 @@
-import { Controller, Get, Post, Query } from "../decorators/custom-decorator";
-import { IncomingMessage, ServerResponse } from "http";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+} from "../decorators/custom-decorator";
 
 @Controller("/users")
 export class UsersController {
-  constructor() {}
-
   @Get("/get")
-  async getUser(
-    request: IncomingMessage,
-    response: ServerResponse,
-    @Query() query: any
-  ) {
+  async getUser(@Query("name") query: any, @Body() body: any) {
+    console.log(`[GET] /users/get`);
     return {
       success: true,
-      data: query,
+      query,
+      body,
     };
   }
   @Post("/save")
-  async saveUser(request: IncomingMessage, response: ServerResponse) {
-    console.log("save");
+  async saveUser(@Body("dana") body: any, @Query() query: any) {
+    console.log(`[POST] /users/save`);
     return {
       success: true,
-      data: {
-        user: "Heejae",
-      },
+      query,
+      body,
     };
   }
 }
